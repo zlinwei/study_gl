@@ -17,6 +17,9 @@ find_package(glfw3 3 REQUIRED)
 message(STATUS "${glfw3_FOUND} VERSION:${glfw3_VERSION}")
 set(DEPS ${DEPS} glfw)
 
+find_package(glog CONFIG REQUIRED)
+set(DEPS ${DEPS} glog::glog)
+
 #get_cmake_property(_variableNames VARIABLES)
 #list(SORT _variableNames)
 #foreach (_variableName ${_variableNames})
