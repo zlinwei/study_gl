@@ -20,6 +20,13 @@ set(DEPS ${DEPS} glfw)
 find_package(glog CONFIG REQUIRED)
 set(DEPS ${DEPS} glog::glog)
 
+# soil
+#include_directories(third_party/soil/inc)
+#add_subdirectory(third_party/soil_local)
+
+set(DEPS ${DEPS} SOIL)
+
+
 #get_cmake_property(_variableNames VARIABLES)
 #list(SORT _variableNames)
 #foreach (_variableName ${_variableNames})
