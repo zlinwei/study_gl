@@ -10,6 +10,10 @@
 
 // Other Libs
 #include <SOIL/SOIL.h>
+// GLM Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // Other includes
 #include "Shader.h"
@@ -48,23 +52,24 @@ int main() {
     // Define the viewport dimensions
     glViewport(0, 0, WIDTH, HEIGHT);
 
-
-    // Build and compile our shader program
     char vs_path[256] = {0};
     char frag_path[256] = {0};
-    sprintf(vs_path, "%s/textures.vs", SRC_PATH);
-    sprintf(frag_path, "%s/textures.frag", SRC_PATH);
-
+    sprintf(vs_path, "%s/shader.vs", SRC_PATH);
+    sprintf(frag_path, "%s/shader.frag", SRC_PATH);
+    // Build and compile our shader program
     Shader ourShader(vs_path, frag_path);
 
-
+    char img_face[256] = {0};
+    sprintf(img_face, "%s/awesomeface.png", SRC_PATH);
+    char img_wall[256] = {0};
+    sprintf(img_wall, "%s/wall.png", SRC_PATH);
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[] = {
-            // Positions          // Colors           // Texture Coords
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // Top Right
-            0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Bottom Right
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // Bottom Left
-            -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // Top Left
+            // Positions          // Texture Coords
+            0.5f, 0.5f, 0.0f, 1.0f, 1.0f, // Top Right
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // Bottom Right
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // Bottom Left
+            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f  // Top Left
     };
     GLuint indices[] = {  // Note that we start from 0!
             0, 1, 3, // First Triangle
@@ -84,19 +89,16 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *) 0);
     glEnableVertexAttribArray(0);
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) (3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
     // TexCoord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) (6 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *) (3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0); // Unbind VAO
 
 
-    // Load and create a texture
+    // Load and create a texture 
     GLuint texture1;
     GLuint texture2;
     // ====================
@@ -112,15 +114,8 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Load, create texture and generate mipmaps
-    int width{}, height{};
-
-    char img_path[256] = {0};
-    sprintf(img_path, "%s/wall.png", SRC_PATH);
-    LOG(INFO) << img_path;
-
-    int channel{};
-    unsigned char *image = SOIL_load_image(img_path, &width, &height, &channel, SOIL_LOAD_RGB);
-    LOG(INFO) << width << "," << height << "," << channel;
+    int width, height;
+    unsigned char *image = SOIL_load_image(img_wall, &width, &height, nullptr, SOIL_LOAD_RGB);
     if (image == nullptr) {
         LOG(ERROR) << "error: " << SOIL_last_result();
         LOG(ERROR) << "error load image: " << image;
@@ -142,10 +137,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Load, create texture and generate mipmaps
-    char img_path1[256] = {0};
-    sprintf(img_path1, "%s/awesomeface.png", SRC_PATH);
-
-    image = SOIL_load_image(img_path1, &width, &height, 0, SOIL_LOAD_RGB);
+    image = SOIL_load_image(img_face, &width, &height, nullptr, SOIL_LOAD_RGB);
     if (image == nullptr) {
         LOG(ERROR) << "error: " << SOIL_last_result();
         LOG(ERROR) << "error load image: " << image;
@@ -159,16 +151,14 @@ int main() {
 
     // Game loop
     while (!glfwWindowShouldClose(window)) {
-        // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+        // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
         // Render
-        // Clear the colorbuffer
+        // Clear the color buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Activate shader
-        ourShader.Use();
 
         // Bind Textures using texture units
         glActiveTexture(GL_TEXTURE0);
@@ -177,6 +167,28 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
         glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
+
+        // Activate shader
+        ourShader.Use();
+
+        // Create transformations
+        glm::mat4 model = glm::mat4(1.0f);;
+        glm::mat4 view = glm::mat4(1.0f);;
+        glm::mat4 projection = glm::mat4(1.0f);;
+        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));//x轴旋转-55度
+        model = glm::translate(model, glm::vec3(0.1f, 0.f, 0.f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.f));
+        projection = glm::perspective(45.0f, (GLfloat) WIDTH / (GLfloat) HEIGHT, 0.1f, 100.0f);
+        // Get their uniform location
+
+        GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
+        GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
+        GLint projLoc = glGetUniformLocation(ourShader.Program, "projection");
+        // Pass them to the shaders
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        // Note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Draw container
         glBindVertexArray(VAO);
