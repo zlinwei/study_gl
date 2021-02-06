@@ -175,9 +175,9 @@ int main() {
         ourShader.Use();
 
         // Create transformations
-        glm::mat4 model = glm::mat4(1.0f);;
-        glm::mat4 view = glm::mat4(1.0f);;
-        glm::mat4 projection = glm::mat4(1.0f);;
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(model_rotate_degree), glm::vec3(1.0f, 0.0f, 0.0f));//x轴旋转-55度
         model = glm::translate(model, glm::vec3(model_x_move, 0.f, 0.f));
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.f));
