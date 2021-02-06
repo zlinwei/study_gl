@@ -21,6 +21,9 @@
 #include <glog/logging.h>
 
 
+GLfloat model_rotate_degree = -55.0f;
+GLfloat model_x_move = 0.f;
+
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
@@ -175,10 +178,11 @@ int main() {
         glm::mat4 model = glm::mat4(1.0f);;
         glm::mat4 view = glm::mat4(1.0f);;
         glm::mat4 projection = glm::mat4(1.0f);;
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));//x轴旋转-55度
-        model = glm::translate(model, glm::vec3(0.1f, 0.f, 0.f));
+        model = glm::rotate(model, glm::radians(model_rotate_degree), glm::vec3(1.0f, 0.0f, 0.0f));//x轴旋转-55度
+        model = glm::translate(model, glm::vec3(model_x_move, 0.f, 0.f));
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.f));
-        projection = glm::perspective(45.0f, (GLfloat) WIDTH / (GLfloat) HEIGHT, 0.1f, 100.0f);
+        //! 第一个参数是视野，第二个参数是宽高比
+        projection = glm::perspective(glm::radians(80.f), (GLfloat) WIDTH / (GLfloat) HEIGHT, 0.1f, 100.0f);
         // Get their uniform location
 
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
@@ -211,4 +215,20 @@ int main() {
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
+        model_rotate_degree -= 1.0f;
+    }
+
+    if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
+        model_rotate_degree += 1.0f;
+    }
+
+    if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
+        model_x_move -= 0.05f;
+    }
+
+    if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
+        model_x_move += 0.05f;
+    }
 }
